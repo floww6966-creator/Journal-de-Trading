@@ -2,12 +2,15 @@
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
+<meta name="color-scheme" content="dark">
+<meta name="theme-color" content="#080C14">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>GoldJournal</title>
 <!-- Firebase SDK -->
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-  import { getAuth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+  import { getAuth, GoogleAuthProvider, signInWithPopup, signInWithRedirect, getRedirectResult, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
   import { getFirestore, doc, setDoc, getDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
   const firebaseConfig = {
@@ -15,7 +18,7 @@
     authDomain: "journal-trading-ea0a0.firebaseapp.com",
     projectId: "journal-trading-ea0a0",
     storageBucket: "journal-trading-ea0a0.firebasestorage.app",
-    messagingSenderId: "313689972135",background: #192236 !important;
+    messagingSenderId: "313689972135",
     appId: "1:313689972135:web:d3a55bbb01555c953d6a82"
   };
 
@@ -30,9 +33,19 @@
   // Login button handler
   window.loginWithGoogle = async function() {
     try {
-      await signInWithPopup(auth, provider);
+      var isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+      if(isMobile){
+        await signInWithRedirect(auth, provider);
+      } else {
+        await signInWithPopup(auth, provider);
+      }
     } catch(e) { console.error(e); }
   };
+
+  // Handle redirect result on page load (mobile)
+  getRedirectResult(auth).then(function(result){
+    if(result && result.user) console.log('Redirect login OK:', result.user.email);
+  }).catch(function(e){ console.error('Redirect error:', e); });
 
   window.logoutFirebase = async function() {
     await signOut(auth);
@@ -108,6 +121,29 @@
 #fbUserName{font-size:12px;color:var(--text-mid);}
 .btn-logout{padding:5px 10px;background:var(--bg4);border:1px solid var(--border);border-radius:7px;color:var(--text-dim);font-family:DM Sans,sans-serif;font-size:11px;cursor:pointer;}
 .btn-logout:hover{color:var(--red);border-color:rgba(247,88,122,0.3);}
+input, select, textarea {
+  color-scheme: dark;
+  background: #192236 !important;
+  background-color: #192236 !important;
+  color: #E2EAF8 !important;
+  border: 1px solid #1C2D47 !important;
+  border-radius: 9px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 13px;
+  padding: 9px 13px;
+  outline: none;
+  width: 100%;
+  -webkit-text-fill-color: #E2EAF8 !important;
+}
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus {
+  -webkit-box-shadow: 0 0 0px 1000px #192236 inset !important;
+  -webkit-text-fill-color: #E2EAF8 !important;
+  background-color: #192236 !important;
+}
+input::placeholder, textarea::placeholder { color: #4A5E82 !important; opacity:1; }
+input[type="number"]::-webkit-inner-spin-button { opacity: 0.3; }
 body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;
   background-image:radial-gradient(ellipse 80% 40% at 50% -10%,rgba(79,142,247,0.1) 0%,transparent 70%);}
 
