@@ -7,94 +7,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>GoldJournal</title>
-<!-- Firebase SDK -->
-<script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-  import { getAuth, GoogleAuthProvider, signInWithPopup, signInWithRedirect, getRedirectResult, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
-  import { getFirestore, doc, setDoc, getDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
-  const firebaseConfig = {
-    apiKey: "AIzaSyACJWm3W83GmyirfRp4V7d-1skwbRQiVlA",
-    authDomain: "journal-trading-ea0a0.firebaseapp.com",
-    projectId: "journal-trading-ea0a0",
-    storageBucket: "journal-trading-ea0a0.firebasestorage.app",
-    messagingSenderId: "313689972135",
-    appId: "1:313689972135:web:d3a55bbb01555c953d6a82"
-  };
-
-  const app = initializeApp(firebaseConfig);
-  const auth = getAuth(app);
-  const db = getFirestore(app);
-  const provider = new GoogleAuthProvider();
-
-  let currentUID = null;
-  let unsubscribe = null;
-
-  // Login button handler
-  window.loginWithGoogle = async function() {
-    try {
-      var isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
-      if(isMobile){
-        await signInWithRedirect(auth, provider);
-      } else {
-        await signInWithPopup(auth, provider);
-      }
-    } catch(e) { console.error(e); }
-  };
-
-  // Handle redirect result on page load (mobile)
-  getRedirectResult(auth).then(function(result){
-    if(result && result.user) console.log('Redirect login OK:', result.user.email);
-  }).catch(function(e){ console.error('Redirect error:', e); });
-
-  window.logoutFirebase = async function() {
-    await signOut(auth);
-  };
-
-  // Save all data to Firestore
-  window.saveToFirebase = async function(uid, data) {
-    if(!uid) return;
-    try {
-      await setDoc(doc(db, 'users', uid), data, { merge: true });
-    } catch(e) { console.error('Firebase save error:', e); }
-  };
-
-  // Auth state listener
-  onAuthStateChanged(auth, async (user) => {
-    const loginScreen = document.getElementById('loginScreen');
-    const appContainer = document.getElementById('appContainer');
-    if(user) {
-      currentUID = user.uid;
-      document.getElementById('fbUserName').textContent = user.displayName || user.email;
-      document.getElementById('fbUserPhoto').src = user.photoURL || '';
-      document.getElementById('fbUserPhoto').style.display = user.photoURL ? 'block' : 'none';
-      if(loginScreen) loginScreen.style.display = 'none';
-      if(appContainer) appContainer.style.display = 'block';
-
-      // Load data from Firestore
-      if(unsubscribe) unsubscribe();
-      unsubscribe = onSnapshot(doc(db, 'users', uid), (snap) => {
-        if(snap.exists()) {
-          const data = snap.data();
-          // Sync to localStorage
-          Object.keys(data).forEach(k => {
-            localStorage.setItem(k, typeof data[k] === 'string' ? data[k] : JSON.stringify(data[k]));
-          });
-          // Reload app data
-          if(window.reloadFromStorage) window.reloadFromStorage();
-        }
-      });
-    } else {
-      currentUID = null;
-      if(unsubscribe) { unsubscribe(); unsubscribe = null; }
-      if(loginScreen) loginScreen.style.display = 'flex';
-      if(appContainer) appContainer.style.display = 'none';
-    }
-  });
-
-  // Override persist to also save to Firebase
-  window._firebaseUID = () => currentUID;
-</script>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet">
 <style>
 :root{
@@ -107,20 +20,8 @@
   --border:#1C2D47;--border-hi:#2A4470;
 }
 *{margin:0;padding:0;box-sizing:border-box;}
-#loginScreen{display:flex;position:fixed;inset:0;background:var(--bg);z-index:9999;align-items:center;justify-content:center;flex-direction:column;gap:20px;background-image:radial-gradient(ellipse 80% 40% at 50% -10%,rgba(79,142,247,0.12) 0%,transparent 70%);}
-#appContainer{display:none;}
-.login-card{background:var(--bg3);border:1px solid var(--border);border-radius:18px;padding:40px 48px;text-align:center;max-width:380px;width:100%;}
-.login-logo{font-size:36px;font-weight:700;letter-spacing:-.04em;margin-bottom:6px;}
-.login-logo em{font-style:normal;color:var(--blue);}
-.login-sub{font-size:13px;color:var(--text-dim);margin-bottom:28px;}
-.btn-google{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;padding:13px;background:#fff;border:none;border-radius:11px;font-family:DM Sans,sans-serif;font-size:14px;font-weight:600;color:#1a1a1a;cursor:pointer;transition:all .2s;}
-.btn-google:hover{transform:translateY(-1px);box-shadow:0 6px 24px rgba(255,255,255,0.15);}
-.btn-google img{width:20px;height:20px;}
-.fb-user{display:flex;align-items:center;gap:8px;}
-#fbUserPhoto{width:26px;height:26px;border-radius:50%;object-fit:cover;}
-#fbUserName{font-size:12px;color:var(--text-mid);}
-.btn-logout{padding:5px 10px;background:var(--bg4);border:1px solid var(--border);border-radius:7px;color:var(--text-dim);font-family:DM Sans,sans-serif;font-size:11px;cursor:pointer;}
-.btn-logout:hover{color:var(--red);border-color:rgba(247,88,122,0.3);}
+
+
 input, select, textarea {
   color-scheme: dark;
   background: #192236 !important;
@@ -432,21 +333,7 @@ textarea{resize:vertical;min-height:70px;font-family:'DM Sans',sans-serif;font-s
 </head>
 <body>
 
-<!-- LOGIN SCREEN -->
-<div id="loginScreen">
-  <div class="login-card">
-    <div class="login-logo">Gold<em>Journal</em></div>
-    <div class="login-sub">Ton journal de trading XAUUSD · FundedNext</div>
-    <button class="btn-google" onclick="loginWithGoogle()">
-      <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google">
-      Continuer avec Google
-    </button>
-    <div style="margin-top:16px;font-size:11px;color:var(--text-dim)">Tes données sont synchronisées automatiquement sur tous tes appareils</div>
-  </div>
-</div>
 
-<!-- APP -->
-<div id="appContainer">
 <header class="header">
   <div class="logo">
     <div class="logo-mark">XAU</div>
@@ -479,11 +366,7 @@ textarea{resize:vertical;min-height:70px;font-family:'DM Sans',sans-serif;font-s
     <button class="nav-btn" onclick="exportData()" title="Exporter toutes les données" style="font-size:12px">⬇️ Export</button>
     <label class="nav-btn" style="cursor:pointer;font-size:12px" title="Importer des données">⬆️ Import<input type="file" accept=".json" onchange="importData(event)" style="display:none"></label>
   </nav>
-  <div class="fb-user" style="margin-left:8px">
-    <img id="fbUserPhoto" src="" style="display:none">
-    <span id="fbUserName"></span>
-    <button class="btn-logout" onclick="logoutFirebase()">Déconnexion</button>
-  </div>
+
 </header>
 
 <main class="main">
@@ -2067,6 +1950,6 @@ window.reloadFromStorage = function(){
 setInterval(updateSessionIndicator, 60000);
 renderDaily();
 </script>
-</div><!-- end appContainer -->
+
 </body>
 </html>
